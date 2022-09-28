@@ -116,7 +116,11 @@ class BufferedReader:
         self.buffer.extend(packet)
         self.current_buffer_size = len(self.buffer)
 
-    def _read_one(self):
+    async def _read_one(self):
+        if self.position == self.current_buffer_size:
+            await self._read_into_buffer()
+            self.position = 0
+
         packet = self.buffer[self.position]
         self.position += 1
         return packet
@@ -127,7 +131,7 @@ class BufferedReader:
             await self._read_into_buffer()
         packets = bytearray()
         while True:
-            packet = self._read_one()
+            packet = await self._read_one()
             packets.append(packet)
             if packet < 0x80:
                 break
